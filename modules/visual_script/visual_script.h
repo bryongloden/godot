@@ -20,6 +20,8 @@ friend class VisualScript;
 
 	void _set_default_input_values(Array p_values);
 	Array _get_default_input_values() const;
+
+	void validate_input_default_values();
 protected:
 
 	virtual bool _use_builtin_script() const { return false; }
@@ -275,7 +277,7 @@ public:
 	Variant get_variable_default_value(const StringName& p_name) const;
 	void set_variable_info(const StringName& p_name,const PropertyInfo& p_info);
 	PropertyInfo get_variable_info(const StringName& p_name) const;
-	void get_variable_list(List<StringName> *r_variables);
+	void get_variable_list(List<StringName> *r_variables) const;
 	void rename_variable(const StringName& p_name,const StringName& p_new_name);
 
 
@@ -300,6 +302,7 @@ public:
 
 	virtual bool can_instance() const;
 
+	virtual Ref<Script> get_base_script() const;
 	virtual StringName get_instance_base_type() const;
 	virtual ScriptInstance* instance_create(Object *p_this);
 	virtual bool instance_has(const Object *p_this) const;
@@ -320,11 +323,12 @@ public:
 	virtual void get_script_signal_list(List<MethodInfo> *r_signals) const;
 
 	virtual bool get_property_default_value(const StringName& p_property,Variant& r_value) const;
-	virtual void get_method_list(List<MethodInfo> *p_list) const;
+	virtual void get_script_method_list(List<MethodInfo> *p_list) const;
 
 	virtual bool has_method(const StringName& p_method) const;
 	virtual MethodInfo get_method_info(const StringName& p_method) const;
 
+	virtual void get_script_property_list(List<PropertyInfo> *p_list) const;
 
 
 	VisualScript();
@@ -412,6 +416,9 @@ public:
 	void create(const Ref<VisualScript>& p_script,Object *p_owner);
 
 	virtual ScriptLanguage *get_language();
+
+	virtual RPCMode get_rpc_mode(const StringName& p_method) const;
+	virtual RPCMode get_rset_mode(const StringName& p_variable) const;
 
 	VisualScriptInstance();
 	~VisualScriptInstance();

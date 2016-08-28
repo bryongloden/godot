@@ -38,6 +38,8 @@
 
 class ScriptLanguage;
 
+typedef void (*ScriptEditRequestFunction)(const String& p_path);
+
 class ScriptServer {
 	enum {
 
@@ -49,6 +51,8 @@ class ScriptServer {
 	static bool scripting_enabled;
 	static bool reload_scripts_on_save;
 public:
+
+	static ScriptEditRequestFunction edit_request_func;
 
 	static void set_scripting_enabled(bool p_enabled);
 	static bool is_scripting_enabled();
@@ -88,6 +92,8 @@ public:
 
 	virtual bool can_instance() const=0;
 
+	virtual Ref<Script> get_base_script() const=0; //for script inheritance
+
 	virtual StringName get_instance_base_type() const=0; // this may not work in all scripts, will return empty if so
 	virtual ScriptInstance* instance_create(Object *p_this)=0;
 	virtual bool instance_has(const Object *p_this) const=0;
@@ -113,7 +119,8 @@ public:
 	virtual bool get_property_default_value(const StringName& p_property,Variant& r_value) const=0;
 
 	virtual void update_exports() {} //editor tool
-	virtual void get_method_list(List<MethodInfo> *p_list) const=0;
+	virtual void get_script_method_list(List<MethodInfo> *p_list) const=0;
+	virtual void get_script_property_list(List<PropertyInfo> *p_list) const=0;
 
 
 	Script() {}
@@ -121,6 +128,8 @@ public:
 
 class ScriptInstance {
 public:
+
+
 	virtual bool set(const StringName& p_name, const Variant& p_value)=0;
 	virtual bool get(const StringName& p_name, Variant &r_ret) const=0;
 	virtual void get_property_list(List<PropertyInfo> *p_properties) const=0;
@@ -147,6 +156,17 @@ public:
 	virtual Ref<Script> get_script() const=0;
 
 	virtual bool is_placeholder() const { return false; }
+
+	enum RPCMode {
+		RPC_MODE_DISABLED,
+		RPC_MODE_REMOTE,
+		RPC_MODE_SYNC,
+		RPC_MODE_MASTER,
+		RPC_MODE_SLAVE,
+	};
+
+	virtual RPCMode get_rpc_mode(const StringName& p_method) const=0;
+	virtual RPCMode get_rset_mode(const StringName& p_variable) const=0;
 
 	virtual ScriptLanguage *get_language()=0;
 	virtual ~ScriptInstance();
@@ -278,6 +298,9 @@ public:
 	void update(const List<PropertyInfo> &p_properties,const Map<StringName,Variant>& p_values); //likely changed in editor
 
 	virtual bool is_placeholder() const { return true; }
+
+	virtual RPCMode get_rpc_mode(const StringName& p_method) const { return RPC_MODE_DISABLED; }
+	virtual RPCMode get_rset_mode(const StringName& p_variable) const { return RPC_MODE_DISABLED; }
 
 	PlaceHolderScriptInstance(ScriptLanguage *p_language, Ref<Script> p_script,Object *p_owner);
 	~PlaceHolderScriptInstance();
